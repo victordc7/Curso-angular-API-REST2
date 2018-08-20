@@ -1,0 +1,81 @@
+@media only screen and (min-width: 1251px) {
+    .leftheader{
+        float: left;
+        max-width: 40%;
+        margin-left: 10%;
+    }
+    .rigthheader{
+        float: right;
+        max-width: 40%;
+        margin-right: 10%;
+    }
+    .jumbotron{
+        height: 25vw;
+    }
+    .lead{
+        width: 70%;
+        size: 1em;
+    }
+    .jumbotron h1{
+        size: 2em;
+    }
+    .separador{
+        background-color: #E16C12;
+        clear: both;
+    }
+}
+
+@media only screen and (max-width: 1250px) and (min-width: 992px ) {
+    .jumbotron{
+        height: calc(1435px + 128px - 100vw) ;
+    }
+    .leftheader{
+        float: left;
+        max-width: 40%;
+        margin-left: 10%;
+    }
+    .rigthheader{
+        float: right;
+        max-width: 40%;
+        margin-right: 10%;
+    }
+      .lead{
+        width: 70%;
+        size: 1em;
+    }
+    .jumbotron h1{
+        size: 2em;
+    }
+    .separador{
+        background-color: #E16C12;
+        clear: both;
+    }
+    
+}
+
+@media only screen and (max-width: 991px) {
+    .rigthheader{
+        display: block;
+    }
+    .leftheader{
+        display: block;
+        margin: 1em;
+    }
+    
+}
+
+.jumbotron{
+    background-color: #E16C12;
+    color: white;
+    margin: 0;
+}
+
+.lead{
+    text-align: justify;
+    font-family: 'Montserrat', sans-serif;
+}
+
+h1{
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 600;
+}

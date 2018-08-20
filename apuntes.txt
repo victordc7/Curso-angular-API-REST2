@@ -1,0 +1,202 @@
+Instalamos nodejs, typescript, angular cli y mongodb (con robomongo para visualizar la base de datos).
+
+creamos un nuevo proyecto de angular con
+    ng new nombreProyecto
+instalamos nodejs en el proyecto con
+    npm install node
+
+
+Creamos 2 archivos package.json y servidor.js
+en package.json creamos un documento con la informacion de la aplicacion, importante la parte de dependencias.
+    ej:
+    {
+        "name": "AngularAPI",
+        "version": "1.0.0",
+        "description": "Servidor de API en NODE y Angular",
+        "author": "Victor del Carpio",
+        "license": "ISC",
+        "dependencies": {
+            "express": "~3.x"
+        }   
+    }
+luego usamos el comando
+    npm install
+el cual nos instalara todo lo que este en el subdocumento dependencies, en este caso express
+con esto ya tenemos todos los elementos para poner a trabajar el servidor
+ahora vamos a trabajar con el archivo servidor.js
+en este archivo vamos a poner todos los pasos para ejecutar el servidor.
+lo primero que debemos hacer es importar express, luego crear una variable comunmente llamada app de la clase express y luego le aplicamos el metodo listen para ejecutar el servidor. Este metodo recibe un puerto comunmente se usa el 8080, y ejecuta una funcion.
+    Ej:
+    var express = require('express');
+    var app = express();
+
+    app.listen( 8080 , function(){
+        console.log("el servidor funciona");
+    })
+Para ejecutar el servidor usamos
+    node servidor.js
+Podemos instalar nodemon para ver lo cambios en el servidor sin tener que reiniciarlo constanteamente. Para ello ejecutamos
+    npm install nodemon --save
+el --save sirve para agregarlo a las dependencias del package.json
+ahora podemos utilizar
+    nodemon servidor.js
+y de esa forma veremos los cambios en el servidor cada vez que actualicemos el archivo.
+
+
+Ahora vamos a conectar con el servidor una base de datos MongoDB
+para esto lo primero que debemos hacer es instalar la dependencia mongoose con el siguiente comando
+    npm install moongose --save
+ahora para hacer la coneccion trabajaremos en el archivo servidor.js
+primero debemos importar mongoose, luego usar el metodo connect
+    var mongoose = require('mongoose');
+
+    mongoose.connect('mongodb://localhost:27017/nombre-de-la-base-de-datos-a-usar');
+
+ahora debemos crear el modelo de la base de datos, para ello creamos una variable del tipo mongoose y llamaremos al metodo model
+
+    var Lista = mongoose.model( 'Lista' , { 
+        titulo:String,
+        contenido:String
+    } );
+el primer parametro va a ser el nombre de la tabla, el segundo parametro va a ser un documento donde se definiran los campos y sus tipos.
+
+Rutas estaticas
+ahora agregamos las siguientes lineas de codigo.
+
+    app.configure( function(){
+        app.use( express.static(__dirname + '/publico') )
+    })
+
+    app.get( '*', function( request, recursos){
+        recursos.sendfile( './publico/index.html')
+    })
+
+con app.configure usamos una ruta estatica donde estaran nuestras vistas. Esa carpeta debemos crearla.
+con app.get le pasamos como parametro * que es un comodin es decir todas las rutas que no estan definidas. y nos enva un archivo index.html (el cual debe estar dentro de la ruta estatica). Esta sera nustra ruta base.
+
+
+POST (crear)
+A continuacion crearemos un llamado de tipo post para configurar una ruta para utilizar los datos que recibe esta ruta para crear un registro en nuestra base de datos.
+Para esto seguiremos usando el archivo servidor.js
+agregamos dentro de la funcion del metodo configure la siguiente linea,
+    app.use( express.bodyParser() );
+para poder usar la informacion que nos envian de html
+luego creamos el metodo post.
+    app.post('/api/lista' , function(peticion, respuesta){
+        Lista.create({
+            titulo: peticion.body.titulo,
+            contenido: peticion.body.contenido
+        })
+    })
+este metodo post tiene 2 parametros, una ruta y una funcion la cual a su vez tiene 2 parametros peticion (la informacion que recibe de html) y respuesta (lo que el envia despues de ejecutar el metodo).
+usamos la variable definida anteriormente a la cual le creamos un modelo y le pasamos el metodo create para crear un registro nuevo a partir de este modelo por ultimo colocamos con que informacion se va a llenar cada campo.
+    app.post('/api/lista' , function(peticion, respuesta){
+        Lista.create({
+            titulo: peticion.body.titulo,
+            contenido: peticion.body.contenido
+        } , function(err,lista){
+                if(err){
+                    respuesta.send(err);
+                }
+
+                Lista.find( function(err, lista){
+                    if(err){
+                        respuesta.send(err);
+                    }
+
+                    respuest.json(lista);
+
+                })
+            }
+        )
+    })
+
+como segundo parametro del metodo create pasamos una funcion que se ejecutara cada vez que se cree un registro, esta funcion tiene 2 parametros error y lista, si existe algun error la respuesta del metodo post sera error, si todo sale bien la respuesta sera lista (la lista actualizada con el nuevo elemento creado).
+al principio de esta funcion tenemos un if(err) el cual devuelve un error si hay un error durante la creacion del registro. Si el registro se crea satifactoria mente pasamos a mostrar la nueva lista Lista.find() la cual a su vez tambien recibe 2 parametros, un err en caso de que haya algun error de lectura y lista que es la lista actualizada la cual se le enviara al metodo post como un archivo json.
+Para saber si esta funcionando correctamente el metodo post podemos usar la extension de google cliente de servicios Web RESTful que se consigue en el store de google buscando REST, una vez dentro de la extension ponemos la url que hayamos definido, en este caso http://localhost:8080/api/lista y en la pesta;a cuerpo ponemos nuestros documentos en formato json.
+una vez creado algunos registros podemos verlos desde la pesta;a de respuestas en esa misma extension, desde el programa studio 3t for MongoDB (robomongo) o desde la consola.
+
+
+GET (mostrar)
+ahora mostraremos en el navegador todos los registros de nuestra coleccion usando el metodo get.
+con este metodo cuando el usuario entre en una ruta especifica vera los registros de la base de datos, para hacer eso usamos el siguiente codigo
+    app.get( '/api/lista' , function(peticion, respuesta){
+        Lista.find( function(err,lista){
+            if(err){
+                respuesta.send(err);
+            }
+
+            respuesta.json(lista);
+        })
+    })
+notese que la ruta es la misma que la del metodo post se ejecutara una funcion o la otra dependiendo de si se accede a esta ruta atraves del metodo get o el metodo post.
+en la funcion del metodo get tambien pasamos 2 parametros pero solamente mostramos los registros de la colleccion con el metodo find, utilizamos el mismo if para devolver un error si hay algun error con la lectura y si todo sale bien devolvemos la coleccion como un json el cual podremos utilizar en angular, js, etc.
+
+
+DELETE (borrar)
+    app.delete( '/api/lista/:item' , function(peticion, respuesta){
+        Lista.remove( {
+            _id : peticion.params.item
+        } ,function(err,lista){
+            if(err){
+                respuesta.send(err);
+            }
+
+            Lista.find( function(err, lista){
+                if(err){
+                    respuesta.send(err);
+                }
+
+                respuesta.json(lista);
+
+            })
+        })
+    })
+usamos la misma ruta pero con el metodo delete, adicionalemen agregamos un parametro item (los parametros van precedidos por :) el cual nos indicara que registro eliminar.
+Como segundo parametro del metodo delete pasamos una funcion que elimina el registro donde su _id sea igual al parametro que se envio. luego ejecuta la misma funcion que cuando se crea un registro, primero verifica si hubo algun error en esta caso al borrar el regitro, y en caso de no haber error devuelve la lista actualizada (sin el registro eliminado), primero comprueba si ha error de lectura y de no haber errores devulve la lista.
+
+
+PUT (actualizar)
+para mejorar la compatibilidad de losmetods put y delete debemos agregar en la configuracion (app.configure) la siguiente linea
+    app.use( express.methodOverride() );
+luego creamos el metodo put
+    app.put( '/api/lista/:item' , function(peticion, respuesta){
+        Lista.findOneAndUpdate( 
+            { _id : peticion.params.item },
+            { modificado : true,
+            titulo : peticion.body.titulo,
+            contenido : peticion.body.contenido,
+            fecha : Date() },
+            function(err,lista){
+                if(err){
+                    respuesta.send(err);
+                }
+
+                Lista.find( function(err, lista){
+                    if(err){
+                        respuesta.send(err);
+                    }
+
+                    respuesta.json(lista);
+
+                })
+            })
+    })
+al igual que el metodo delete recibimos el id como parametro para saber que registro actualizar, luego a nuestra variable lista le pasamos el metodo findOneAndUpdate el cual se encarga de hacer la actualizacion este metodo recibe 3 parametros, el primero el id al igual que el metodo delete, el segundo los valores campos que vamos a actualizar e incluimos un nuevo campo del registro llamado modificado el cual debemos agregar a la parte donde creamos el modelo de registro (es de tipo boleean y lo ponemos true) y el tercer parametro es la funcion que nos muestra si hay algun error o la lista actualizada.
+
+
+CORS
+debemos incluir los cors para que cualquier persona pueda acceder a los datos desde cualquier servidor y no solo desde el servidor local, si no se incluyen puede presentar problemas de seguridad. para incluirlos vamos a https://enable-cors.org/server_expressjs.html y copiamos  el app.use...
+luego debemos instalar la dependencia cors con
+    npm install cors --save
+una vez instalada la dependencia debemos importarla al archivo servidor.js
+    var cors = require('cors');
+por ultimo antes de las lineas que pegamos de internet utilizamos la dependencia ocn el codigo
+    app.use( cors() );
+con esto ya tendriamos funcionando los cors.
+
+
+Ahora conectaremos Angular con la API que ya creamos
+para ello creamos el componente que se conctara a la api y en el archivo component.ts importamos http y response de @angular/http con el siguiente comando
+    import { Http, Response } from '@angular/http';
+Http sirve para hace conexion externas y response sirve para procesar estas conexiones.

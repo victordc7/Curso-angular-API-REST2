@@ -1,0 +1,42 @@
+.navbar{
+    background-color: #401C00;
+    padding: 0;
+}
+li:hover{
+    background-color: #220e00;
+    border-radius: 5%;
+}
+li.active{
+    font-weight: bolder;
+}
+a{
+    color: #FF9E53 !important;
+}
+@media only screen and (min-width: 992px) {
+    li:first-child{
+        margin-left: 6vw;
+    }
+    li{
+        height: 4em;
+    }
+    a{
+        width: 100px ;
+        margin-top: 10px;
+        text-align: center;
+    }
+    .container-fluid{
+        max-width: 0px;
+    }
+}
+@media only screen and (max-width: 991px) {
+    li{
+        text-align: center;
+    }
+    button{
+        display: block !important;
+        border: none;
+        width: 100%;
+        color: #FF9E53;
+        padding-right: 5vw;
+    }
+}
