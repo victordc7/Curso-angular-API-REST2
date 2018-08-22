@@ -197,6 +197,57 @@ con esto ya tendriamos funcionando los cors.
 
 
 Ahora conectaremos Angular con la API que ya creamos
-para ello creamos el componente que se conctara a la api y en el archivo component.ts importamos http y response de @angular/http con el siguiente comando
-    import { Http, Response } from '@angular/http';
-Http sirve para hace conexion externas y response sirve para procesar estas conexiones.
+para ello creamos un servicios
+SERVICE
+Sirven para hacer consultas y almacenar informacion ya que los componentes no deben hacer esto, otra caracteristica importante es que cada servicio tiene un solo objeto por lo cual si algun componente modifica este objeto todos los demas componentes que usen el servicio veran al objeto modificado. De ese modo los servicios permiten comunicacion entre los componentes.
+Para crear un servicio usamos el comando
+    ng g s nombreServicio
+nos creara 2 archivos, nombreServicio.service.ts y nombreServicio.service.spec.ts, este ultimo lo podemos eliminar.
+Finalmente para utilizarla debemos importar el servicio al componente donde lo vayamos a usar y creamos una variable con esa clase dentro del constructor del componente quedaria algo como esto
+    constructor(private mongoS : MongodbService){ }
+Ahora para hacer la consulta a internet (asi sea un localhost nuestra API esta en internet) debemos importar HttpClientModule de @angular/common/http y agregarlo a los imports en el archivo app.module.ts. Tambien debemos importar HttpClient y HttpHeaders de @angular/common/http al servicio que hara la consulta a internet.
+Luego en el constructor del servicio crearemos una variable de esta clase HttpClient de la siguiente manera.
+    constructor(private http : HttpClient){ }
+Ahora podemos seguir configurando el servicio, por ejemplo podemos agregar un metodo peticionesExternas() que obtenga de internet todos los articulos.
+    peticionExterna() {
+    this.http.get('http://localhost:8080/api/lista').subscribe( (respuesta: HttpHeaders) => { console.log(respuesta); } );
+    }
+el metodo get('url') obtiene informacion de dicha url y es un metodo de la clase HttpClient,  este metodo get retorna un observador (aun no hemos trabajado con observadores pero de momento para ver la informacion lo haremos con el .subscribe...)
+Ahora en el componente donde tenemos importado nuestro servicio llamamos al metodo peticionesExternas() dentro de ngOnInit para que se ejecute al cargar el componente.
+    ngOnInit() {
+        this.mongoS.peticionExterna();
+    }
+ya estamos obteniendo informacion de la base de datos, ahora para mostrar esa informacion en nuestra base de datos debemos almacenarla en una variable. Para esto creamos una nueva variable publica de tipo any y en vez de mostrar los documentos de la base de datos en la consola guardamos estos datos en la variable que creamos.
+    public lista: any;
+    peticionExterna() {
+        this.http.get('http://localhost:8080/api/lista').subscribe( (respuesta: HttpHeaders) => { this.lista = respuesta; } );
+    }
+ahora en el archivo html del componente creamos la lista o la tabla donde vamos a mostrar los datos de la base de datos, usamos un ciclo ngFor para iterar el arreglo y como el array esta en el servicio debemos especificarlo de la siguiente manera nombreServicio.Array
+    <ul>
+        <li *ngFor="let item of mongoS.lista">
+            {{item.titulo}}
+        </li>
+    </ul>
+el item se refiere a cada documento del arreglo y el .titulo es el campo que mostrara de ese documento. podria ser ._id, .contenido, etc..
+
+Para eliminar registros desde la pagina web debemos crear un metodo en nuestro servicio
+    borrarRegistro(item) {
+        this.http.delete('http://localhost:8080/api/lista/' + item._id ).subscribe( ( respuesta: HttpHeaders) => { this.lista = respuesta; } );
+    }
+el metodo que creamos es borrarRegistro, este metodo recibe un parametro el cual es el documento que vamos a borrar, al igual que para mostrar los registros hacemos coneccion con el servidor pero esta vez con el metodo delete el cual aparte de recibir la url recibe un parametro, el _id del documento que sera eliminado, (ver archivo servidor.js para ver el metodo delete). Despues se manda la promesa para que muestre la lista actualizada.
+Una vez creado el metodo vamos a crear un evento en el archivo html, este evento se puede crear en un boton, un icono, o cualquier otro elemento. En este caso se lo asignamos a una etiqueta span
+    <span class="item eliminar" (click)="mongoS.borrarRegistro(item)">
+        <i class="fas fa-trash-alt"></i>
+    </span>
+El evento que creamos es click de modo que al hacer click en la etiqueta span se ejecutara el metodo borrarRegistro. Notese que como el metodo esta en un servicio debemos llamarlo con el nombreServicio.Metodo()
+
+Para crear registros desde la pagina web debemos crear un formulario y usar ngModel y ngModelOptions en cada entrada para crear el documento que se enviara a la base de datos (Para usar ngModel debemos impotar FormsModule de @angular/forms en el archivo app.module y agregar FormsModule a los imports).
+    <input [(ngModel)]="mongoS.modeloItem.titulo" [ngModelOptions]="{standalone: true}">
+entre comillas va nombreServicio.nombreDocumento.nombreCampo el servicio es donde va a estar creado el metodo que enviara el documento a la base de datos, en el servicio debemos crear tambien una variable con el nombre nombreDocumento.
+Luego debemos crear el boton de submit o guardar para llamar al metodo post (el cual creara el nuevo registro) a este boton le asignamos un evento.
+    <button class="btn btn-primary" (click)="mongoS.crearRegistro()">Guardar</button>
+luego en el servicio creamos el evento, primero asignamos una variable la cual recibe los valores del formulario, y despues conectamos con el servidor con el metodo post el cual recive 2 parametros, la ruta y una variable con los valores para crear el registro.
+    crearRegistro() {
+        const parametros = { titulo : this.modeloItem.titulo, contenido : this.modeloItem.contenido };
+        this.http.post('http://localhost:8080/api/lista', parametros ).subscribe( ( respuesta: HttpHeaders) => { this.lista = respuesta; } );
+    }

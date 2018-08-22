@@ -1,3 +1,28 @@
-<p>
-  lista works!
-</p>
+<ul class="list-group">
+  <li class="list-group-item" *ngFor="let item of mongoS.lista">
+      {{item.titulo}}
+      <span class="herramientas pull-right">
+        <span class="item editar" (click)="mongoS.editarRegistro(item)">
+          <i class="fas fa-pencil-alt"></i>
+        </span>
+        <span class="item eliminar" (click)="mongoS.borrarRegistro(item)">
+            <i class="fas fa-trash-alt"></i>
+          </span>
+      </span>
+  </li>
+</ul> 
+
+<form>
+    <h3>Crear Articulo</h3>
+    <div class="form-group">
+      <label for="titulo">Titulo</label>
+      <input type="text" class="form-control" id="titulo" aria-describedby="Titulo articulo" [(ngModel)]="mongoS.modeloItem.titulo" [ngModelOptions]="{standalone:
+        true}">
+    </div>
+    <div class="form-group">
+      <label for="contenido">Contenido</label>
+      <textarea class="form-control" id="contenido" [(ngModel)]="mongoS.modeloItem.contenido" [ngModelOptions]="{standalone:
+        true}"></textarea>
+    </div>
+    <button class="btn btn-primary" (click)="mongoS.crearRegistro()" onclick=" this.form.reset()">Guardar</button>
+  </form>
