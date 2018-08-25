@@ -1,4 +1,4 @@
-@media only screen and (min-width: 1251px) {
+@media only screen and (min-width: 1305px) {
     .leftheader{
         float: left;
         max-width: 40%;
@@ -25,9 +25,9 @@
     }
 }
 
-@media only screen and (max-width: 1250px) and (min-width: 992px ) {
+@media only screen and (max-width: 1304px) and (min-width: 1101px ) {
     .jumbotron{
-        height: calc(1435px + 128px - 100vw) ;
+        height: calc(1646px - 100vw) ;
     }
     .leftheader{
         float: left;
@@ -52,7 +52,7 @@
     
 }
 
-@media only screen and (max-width: 991px) {
+@media only screen and (max-width: 1100px) {
     .rigthheader{
         display: block;
     }
@@ -77,4 +77,8 @@
 h1{
     font-family: 'Cormorant Garamond', serif;
     font-weight: 600;
+}
+.maxw{
+    max-width: 1500px;
+    margin: auto;
 }

@@ -7,7 +7,6 @@ import { MongodbService } from '../mongodb.service';
   styleUrls: ['./lista.component.css']
 })
 export class ListaComponent implements OnInit {
-  public modeloItem: any = { };
   constructor( private mongoS: MongodbService) { }
 
   ngOnInit() {

@@ -1,28 +1,46 @@
+<!-- lista de registros traida de la bd -->
 <ul class="list-group">
-  <li class="list-group-item" *ngFor="let item of mongoS.lista">
-      {{item.titulo}}
+  <li class="list-group-item" *ngFor="let articulo of mongoS.lista; let i=index">
+    <div *ngIf="!mongoS.lista[i].mostrar">
+      {{articulo.titulo}}
       <span class="herramientas pull-right">
-        <span class="item editar" (click)="mongoS.editarRegistro(item)">
+        <span class="item editar" (click)="mongoS.editarRegistro(i,articulo)">
           <i class="fas fa-pencil-alt"></i>
         </span>
-        <span class="item eliminar" (click)="mongoS.borrarRegistro(item)">
-            <i class="fas fa-trash-alt"></i>
-          </span>
+        <span class="item eliminar" (click)="mongoS.borrarRegistro(articulo)">
+          <i class="fas fa-trash-alt"></i>
+        </span>
       </span>
+    </div>
+    <!-- Formulario de edicion -->
+    <div *ngIf="mongoS.lista[i].mostrar">
+        <form #formLista="ngForm">
+            <h3>Actualizar Articulo</h3>
+            <div class="form-group">
+              <label for="titulo">Titulo</label>
+              <input type="text" class="form-control" id="titulo" aria-describedby="Titulo articulo" [(ngModel)]="mongoS.cambio.titulo" name="titulo" value="mongoS.parametros.titulo">
+            </div>
+            <div class="form-group">
+              <label for="contenido">Contenido</label>
+              <textarea class="form-control" id="contenido" [(ngModel)]="mongoS.cambio.contenido" name="contenido"></textarea>
+            </div>
+            <button type="submit"  class="btn btn-primary" (click)="mongoS.editarRegistroG(articulo, i)">Guardar</button>
+            <button type="submit"  class="btn btn-primary" (click)="mongoS.cancelar(i)">Cancelar</button>
+          </form>
+    </div>
   </li>
 </ul> 
 
-<form>
+<!-- formulario creacion -->
+<form #formLista="ngForm" onSubmit="this.reset()">
     <h3>Crear Articulo</h3>
     <div class="form-group">
       <label for="titulo">Titulo</label>
-      <input type="text" class="form-control" id="titulo" aria-describedby="Titulo articulo" [(ngModel)]="mongoS.modeloItem.titulo" [ngModelOptions]="{standalone:
-        true}">
+      <input type="text" class="form-control" id="titulo" aria-describedby="Titulo articulo" [(ngModel)]="mongoS.parametros.titulo" name="titulo">
     </div>
     <div class="form-group">
       <label for="contenido">Contenido</label>
-      <textarea class="form-control" id="contenido" [(ngModel)]="mongoS.modeloItem.contenido" [ngModelOptions]="{standalone:
-        true}"></textarea>
+      <textarea class="form-control" id="contenido" [(ngModel)]="mongoS.parametros.contenido" name="contenido"></textarea>
     </div>
-    <button class="btn btn-primary" (click)="mongoS.crearRegistro()" onclick=" this.form.reset()">Guardar</button>
+    <button type="submit"  class="btn btn-primary" (click)="mongoS.crearRegistro()">Guardar</button>
   </form>

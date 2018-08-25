@@ -12,6 +12,7 @@ form, ul{
     background-color: #401C00;
     border-color: #401C00;
     color: #FF9E53;
+    margin-right: 5px;
 }
 .btn-primary:active{
     background-color: #220e00 !important;

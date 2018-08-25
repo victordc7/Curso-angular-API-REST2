@@ -241,13 +241,57 @@ Una vez creado el metodo vamos a crear un evento en el archivo html, este evento
     </span>
 El evento que creamos es click de modo que al hacer click en la etiqueta span se ejecutara el metodo borrarRegistro. Notese que como el metodo esta en un servicio debemos llamarlo con el nombreServicio.Metodo()
 
-Para crear registros desde la pagina web debemos crear un formulario y usar ngModel y ngModelOptions en cada entrada para crear el documento que se enviara a la base de datos (Para usar ngModel debemos impotar FormsModule de @angular/forms en el archivo app.module y agregar FormsModule a los imports).
-    <input [(ngModel)]="mongoS.modeloItem.titulo" [ngModelOptions]="{standalone: true}">
+Para crear registros desde la pagina web debemos crear un formulario y usar ngModel con su name en cada entrada para crear el documento que se enviara a la base de datos (Para usar ngModel debemos impotar FormsModule de @angular/forms en el archivo app.module y agregar FormsModule a los imports).
+    <input [(ngModel)]="mongoS.parametros.titulo" name="titulo">
 entre comillas va nombreServicio.nombreDocumento.nombreCampo el servicio es donde va a estar creado el metodo que enviara el documento a la base de datos, en el servicio debemos crear tambien una variable con el nombre nombreDocumento.
 Luego debemos crear el boton de submit o guardar para llamar al metodo post (el cual creara el nuevo registro) a este boton le asignamos un evento.
-    <button class="btn btn-primary" (click)="mongoS.crearRegistro()">Guardar</button>
-luego en el servicio creamos el evento, primero asignamos una variable la cual recibe los valores del formulario, y despues conectamos con el servidor con el metodo post el cual recive 2 parametros, la ruta y una variable con los valores para crear el registro.
+    <button type="submit" class="btn btn-primary" (click)="mongoS.crearRegistro()">Guardar</button>
+luego en el servicio creamos una variable publica la cual recibe los valores del formulario, tambien creamos el evento, este conecta con el servidor con el metodo post el cual recive 2 parametros, la ruta y una variable con los valores para crear el registro.
+    public parametros = { titulo : '', contenido : '' }; /* esto va fuera del constructor */
+    
     crearRegistro() {
-        const parametros = { titulo : this.modeloItem.titulo, contenido : this.modeloItem.contenido };
-        this.http.post('http://localhost:8080/api/lista', parametros ).subscribe( ( respuesta: HttpHeaders) => { this.lista = respuesta; } );
+        this.http.post('http://localhost:8080/api/lista', this.parametros ).subscribe( ( respuesta: HttpHeaders) => { this.lista = respuesta; } );
+    }
+nota: los campos de la variable parametros deben coincidir con los campos de la coleccion en el archivo servidor.js
+
+Paraeditar un registro creamos un metodo que nos muestre el formulario de edicion en el boton de editar
+    <span class="item editar" (click)="mongoS.editarRegistro(i,articulo)">
+          <i class="fas fa-pencil-alt"></i>
+    </span>
+este formulario puede ser en una vista nueva (nuevo componente/ruta) o como en este caso un div que se muestra y se oculta. el metodo quedaria algo asi
+     editarRegistro(i: number, articulo: any) {
+        for (const key in this.lista) {
+        if (this.lista.hasOwnProperty(key)) {
+            this.lista[key].mostrar = false;
+        }
+        }
+        this.lista[i].mostrar = true;
+        this.cambio = {titulo: articulo.titulo, contenido: articulo.contenido};
+    }
+este metodo recibe 2 parametros, el index del documento que se va a editar y el documento que se va a editar. el ciclo for in lo que hace es ocultar cualquier seccion de edicion abierta para que solo se muestre la edicion de 1 registro a la vez, la siguiente sentencia usa el index para mostrar el formulario de edicion del articulo q se selecciono, por ultimo se usa el documento para llenar los campos del formulario con la informacion ya existente en el registro.
+el div del formulario que se mostrara y ocultara queda asi
+    <div *ngIf="mongoS.lista[i].mostrar">
+        <form #formLista="ngForm">
+            <h3>Actualizar Articulo</h3>
+            <div class="form-group">
+              <label for="titulo">Titulo</label>
+              <input type="text" class="form-control" id="titulo" aria-describedby="Titulo articulo" [(ngModel)]="mongoS.cambio.titulo" name="titulo" value="mongoS.parametros.titulo">
+            </div>
+            <div class="form-group">
+              <label for="contenido">Contenido</label>
+              <textarea class="form-control" id="contenido" [(ngModel)]="mongoS.cambio.contenido" name="contenido"></textarea>
+            </div>
+            <button type="submit"  class="btn btn-primary" (click)="mongoS.editarRegistroG(articulo, i)">Guardar</button>
+            <button class="btn btn-primary" (click)="mongoS.cancelar(i)">Cancelar</button>
+          </form>
+    </div>
+este formulario es muy parecido al de creacion, las diferencias son que usamos una variable diferente (contenido en lugar de parametros) para que esto no me modifique el formulario de creacion, en el metodo de guardado le pasamos el index tambien para ocultar el formulario una vez actualizado y creamos otro boton cancelar con un metodo que ocultara el formulario sin realizar cambios en el registro. Los metodos quedarian asi
+    editarRegistroG(item, i) {
+        this.http.put('http://localhost:8080/api/lista/' + item._id, this.cambio )
+        .subscribe( ( respuesta: HttpHeaders) => { this.lista = respuesta; } );
+        this.lista[i].mostrar = false;
+    }
+
+    cancelar(i: number) {
+        this.lista[i].mostrar = false;
     }

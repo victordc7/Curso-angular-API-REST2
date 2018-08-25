@@ -13,8 +13,8 @@ a{
     color: #FF9E53 !important;
 }
 @media only screen and (min-width: 992px) {
-    li:first-child{
-        margin-left: 6vw;
+    .navbar{
+        padding: 0 10%; 
     }
     li{
         height: 4em;
